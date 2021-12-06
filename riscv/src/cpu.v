@@ -171,7 +171,7 @@ module cpu(
     .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
     .has_misbranch(has_misbranch),
 
-    .out_next_pc(out_next_pc), .pc_reg(pc_ready), .has_jump(has_jump),
+    .out_next_pc(out_next_pc), .pc_ready(pc_ready), .has_jump(has_jump),
 
     .inst(out_pc_inst), .has_ask(pc_reg_ask), 
 
