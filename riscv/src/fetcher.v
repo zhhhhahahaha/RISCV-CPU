@@ -40,6 +40,7 @@ module fetcher (
 
     
 );
+    reg can_begin;
     reg misbranch_recover;
     reg wait_issue;
     wire allready;
@@ -50,50 +51,60 @@ module fetcher (
         if(rst) begin
             can_issue <= `False;
             mem_ask <= `False;
-            pc_reg_ask <= `True;
-            wait_issue <= `False;
-            misbranch_recover <= `False;
-        end
-        else if(has_misbranch)begin
-            misbranch_recover <= `True;
-            mem_ask <= `False;
             pc_reg_ask <= `False;
-            can_issue <= `False;
             wait_issue <= `False;
-        end
-        else if(misbranch_recover)begin
-            out_mem_addr <= in_pc_addr;
-            mem_ask <= `True;
             misbranch_recover <= `False;
+            can_begin <= `True;
         end
-        else if(rdy) begin
+        else if (rdy) begin
             pc_reg_ask <= `False;
             mem_ask <= `False;
             can_issue <= `False;
-            if(wait_issue && all_ready)begin
-                wait_issue <= `False;
-                can_issue <= `True;
-                pc_reg_ask <= `True;
-                out_pc_inst <= out_issue_inst;
-            end
-            if(in_mem_ready)begin
-                out_issue_inst <= in_mem_inst;
-                out_issue_pc <= in_pc_addr;
-                out_has_jump <= in_has_jump;
-                if(all_ready) begin
-                    can_issue <= `True;
-                    pc_reg_ask <= `True;
-                    out_pc_inst <= in_mem_inst;
-                end
-                else begin
-                    wait_issue <= `True;
-                end
-            end
-            if(pc_ready) begin
-                out_mem_addr <= in_pc_addr;
+            if(can_begin) begin
+                can_begin <= `False;
+                out_mem_addr <= `Zero_Addr;
                 mem_ask <= `True;
             end
-        end 
-    end
+            else if(has_misbranch) begin
+                misbranch_recover <= `True;
+                mem_ask <= `False;
+                pc_reg_ask <= `False;
+                can_issue <= `False;
+                wait_issue <= `False;
+            end
+            else if(misbranch_recover) begin
+                out_mem_addr <= in_pc_addr;
+                mem_ask <= `True;
+                misbranch_recover <= `False;
+            end
+            else begin
+                if(wait_issue && all_ready)begin
+                    wait_issue <= `False;
+                    if(out_issue_inst!=32'd0)
+                    can_issue <= `True;
+                    pc_reg_ask <= `True;
+                    out_pc_inst <= out_issue_inst;
+                end
+                if(in_mem_ready)begin
+                    out_issue_inst <= in_mem_inst;
+                    out_issue_pc <= in_pc_addr;
+                    out_has_jump <= in_has_jump;
+                    if(all_ready) begin
+                        if(in_mem_inst!=32'd0)
+                        can_issue <= `True;
+                        pc_reg_ask <= `True;
+                        out_pc_inst <= in_mem_inst;
+                    end
+                    else begin
+                        wait_issue <= `True;
+                    end
+                end
+                if(pc_ready) begin
+                    out_mem_addr <= in_pc_addr;
+                    mem_ask <= `True;
+                end
+            end
+        end
+    end    
      
 endmodule //fetcher

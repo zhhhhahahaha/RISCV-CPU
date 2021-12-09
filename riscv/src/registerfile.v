@@ -33,7 +33,10 @@ module registerfile (
     reg [`Rob_Addr_Len] rob_num [`Regfile_Size];
     reg busy [`Regfile_Size];
     integer i;
-    
+    integer file;
+    initial begin
+        file = $fopen("a.out", "w");
+    end
     always @(posedge clk) begin
         if(rst) begin
             for(i = 0; i < 32 ; i = i + 1)begin
@@ -52,13 +55,17 @@ module registerfile (
                 busy[rd_addr] <= `True;
                 rob_num[rd_addr] <= rd_rob_num;
             end
-            if (has_from_rob) begin
+            if (has_from_rob && dest_reg_num!=`Zero_Reg_Addr) begin
                 busy[dest_reg_num] <= `False;
                 datas[dest_reg_num] <= in_reg_data;
+                $fwrite(file, "%d", dest_reg_num);
+                $fwrite(file, "  ");
+                $fwrite(file, $time);
+                $fdisplay(file, "%d", in_reg_data);
             end
         end
     end
-    
+
     assign rs1_data = (has_from_rob && dest_reg_num==rs1_addr)? in_reg_data : datas[rs1_addr];
     assign rs2_data = (has_from_rob && dest_reg_num==rs2_addr)? in_reg_data : datas[rs2_addr];
     assign rs1_busy = (has_from_rob && dest_reg_num==rs1_addr)? `False : busy[rs1_addr];

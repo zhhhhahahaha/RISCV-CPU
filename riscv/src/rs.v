@@ -60,8 +60,8 @@ module rs (
     reg rs2_ready [`Rs_Size];
     
     integer i;
-    wire rs_avail_num;
-    wire avail_to_alu_num;
+    wire [3:0] rs_avail_num;
+    wire [3:0] avail_to_alu_num;
     wire rs_ready_to_alu;
 
 
@@ -114,7 +114,7 @@ module rs (
                 out_op <= op[avail_to_alu_num];
                 out_pc <= pc[avail_to_alu_num];
                 out_shamt <= shamt[avail_to_alu_num];
-                out_rs_rd_robnum <= shamt[avail_to_alu_num];
+                out_rs_rd_robnum <= rs_rd_robnum[avail_to_alu_num];
                 out_rs1_oprand <= rs1_oprand[avail_to_alu_num];
                 out_rs2_oprand <= rs2_oprand[avail_to_alu_num];
                 busy[avail_to_alu_num] <= `False;

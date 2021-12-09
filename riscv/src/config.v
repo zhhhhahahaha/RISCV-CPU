@@ -73,7 +73,7 @@
 `define srl 7'b0000000
 `define sra 7'b0100000
 
-`define Shamt_Len 5:0
+`define Shamt_Len 4:0
 
 //for ROB
 `define Rob_Size 15:0

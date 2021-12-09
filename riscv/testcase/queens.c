@@ -9,15 +9,17 @@ void printBoard() {
     int j;
     for (i = 0; i < N; i++) {
         for (j = 0; j < N; j++) {
-            if (col[i] == j)
-                print(" O");
-            else
-                print(" .");
+            if (col[i] == j){
+                //print(" O");
+            }
+            else{
+                //print(" .");
+            }
         }
-        println("");
+        //println("");
     }
-    println("");
-    sleep(50); // to prevent UART buffer from overflowing
+    //println("");
+    //sleep(50); // to prevent UART buffer from overflowing
 }
 
 void search(int c) {

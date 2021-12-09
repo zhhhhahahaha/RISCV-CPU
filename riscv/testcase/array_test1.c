@@ -9,17 +9,17 @@ int main()
     for (i = 0; i < 4; i++)
 	{
 		a[i] = 0;
-		b[i] = inl();
+		b[i] = i + 1;//inl() 
 	}
 	for (i = 0; i < 4; i++)
 	{
-		outl(a[i]);
+		//outl(a[i]);
 	}
 	println("");
 	int *p;
 	p=b;
 	for (i = 0; i < 4; i++)
 	{
-		outl(p[i]);
+		//outl(p[i]);
 	}
 }

@@ -66,7 +66,11 @@ module rob (
     reg ready_field [`Rob_Size];
     reg has_jump [`Rob_Size];
     reg need_jump [`Rob_Size];
-    reg true_pc [`Rob_Size];
+    reg [`Addr_Len] true_pc [`Rob_Size];
+    integer file;
+    initial begin
+        file = $fopen("a.out", "w");
+    end
 
     assign full = hasissued? head==tail+2 : head == tail+1; //only 15 entries can be used 
 
@@ -96,14 +100,15 @@ module rob (
             has_rd_ready_2 <= `False;
             has_to_reg <= `False;
             has_misbranch <= `False;
-            if (hasissued) begin
+            if (hasissued && !has_misbranch) begin
                 inst_type_field[tail] <= inst_type;
                 dest_field[tail] <= dest;
                 ready_field[tail] <= `False;
                 has_jump[tail] <= in_has_jump;
                 need_jump[tail] <= `False;
                 true_pc[tail] <= `Zero_Reg_Addr;
-                tail <= tail + 1;          
+                tail <= tail + 1;
+                //$write("%d", tail);          
             end
             if (has_from_alu) begin
                 ready_field[in_alu_rd_robnum] <= `True;
@@ -142,6 +147,8 @@ module rob (
                     end
                 endcase 
             end
+            //$write("%d", tail);
+            //$display("%d",head);
             if(head!=tail && ready_field[head]) begin
                 case (inst_type_field[head])
                     `Other_Type : begin
@@ -154,12 +161,30 @@ module rob (
                         head <= head + 1;
                     end
                     `Branch_Type : begin
-                        if(!head+1==tail)begin
+                        if(head+1!=tail && !(head==4'd15&&tail==4'd0))begin
                             head <= head + 1;
-                            if(!has_jump[head+1]==need_jump[head])begin
-                                tail <= head + 1;
-                                has_misbranch <= `True;
-                                out_true_pc <= true_pc[head];
+                            /*$fwrite(file, $time);
+                            $fwrite(file, "  ");
+                            $fwrite(file, "%d", head);
+                            $fwrite(file, "  ");
+                            $fwrite(file, "%d", head+1);
+                            $fwrite(file, "  ");
+                            $fwrite(file, "%d", has_jump[head+1]);
+                            $fwrite(file, "  ");
+                            $fdisplay(file, "%d",need_jump[head]);*/
+                            if(head!=4'd15)begin
+                                if(!has_jump[head+1]==need_jump[head])begin
+                                    tail <= head + 1;
+                                    has_misbranch <= `True;
+                                    out_true_pc <= true_pc[head];
+                                end
+                            end
+                            else begin
+                                if(!has_jump[0]==need_jump[head])begin
+                                    tail <= head + 1;
+                                    has_misbranch <= `True;
+                                    out_true_pc <= true_pc[head];
+                                end
                             end
                         end    
                     end

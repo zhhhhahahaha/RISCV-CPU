@@ -9,6 +9,7 @@
 `include "rob.v"
 `include "rs.v"
 `include "slbuffer.v"
+`include "config.v"
 
 
 
@@ -237,6 +238,12 @@ module cpu(
 
     .rs_avail(rs_avail),
 
+    .issue_rs(issue_rs), .rs_imm(rs_imm), .rs_op(rs_op),
+    .rs_pc(rs_pc), .shamt(shamt), .rs_rd_robnum(rs_rd_robnum), 
+    .rs_rs1_oprand(rs_rs1_oprand), .rs_rs2_oprand(rs_rs2_oprand),
+    .rs_rs1_robnum(rs_rs1_robnum), .rs_rs2_robnum(rs_rs2_robnum), 
+    .rs_rs1_ready(rs_rs1_ready), .rs_rs2_ready(rs_rs2_ready),
+
     .issue_slb(issue_slb), .slb_imm(slb_imm), .slb_op(slb_op),
     .slb_rd_robnum(slb_rd_robnum), .slb_rs1_oprand(slb_rs1_oprand), .slb_rs2_oprand(slb_rs2_oprand),
     .slb_rs1_robnum(slb_rs1_robnum), .slb_rs2_robnum(slb_rs2_robnum), .slb_rs1_ready(slb_rs1_ready),
@@ -296,6 +303,7 @@ module cpu(
     .has_misbranch(has_misbranch),
 
     .has_issue(issue_rs), .in_imm(rs_imm), .in_op(rs_op),
+    .in_pc(rs_pc),
     .in_shamt(shamt), .in_rs_rd_robnum(rs_rd_robnum), .in_rs1_oprand(rs_rs1_oprand),
     .in_rs2_oprand(rs_rs2_oprand), .in_rs1_robnum(rs_rs1_robnum), .in_rs2_robnum(rs_rs2_robnum),
     .in_rs1_ready(rs_rs1_ready), .in_rs2_ready(rs_rs2_ready),

@@ -61,9 +61,6 @@ module issue (
     output rs_rs1_ready,
     output rs_rs2_ready,
 
-    //from SLBuffer
-    input slb_avail,
-
     //to SLBuffer
     output reg issue_slb,
     output reg [`Data_Len] slb_imm,
@@ -147,240 +144,245 @@ module issue (
             inst_need_rs1 <= `False;
             inst_need_rs2 <= `False;
         end
-        else if(rdy&&can_issue) begin
-            dest <= inst[11:7];
-            rd_addr <= inst[11:7];
-            rd_rob_num <= rob_avail_num;
-            rs_rd_robnum <= rob_avail_num;
-            slb_rd_robnum <= rob_avail_num;
-            rs_pc <= pc;
-            out_has_jump <= in_has_jump;
-                       
-            issue_rob <= `True;
+        else if(rdy) begin
+            issue_rob <= `False;
             issue_rs <= `False;
             needsetbusy <= `False;
             issue_slb <= `False;
-            case (inst[6:0])
-                `Lui: begin 
-                    inst_type <= `Other_Type;
-                    issue_rs <= `True;
-                    rs_imm <= U_Imm;
-                    rs_op <= `op_lui;
-                    rs1_addr <= `Zero_Reg_Addr;
-                    rs2_addr <= `Zero_Reg_Addr;
-                    needsetbusy <= `True;
-                    inst_need_rs1 <= `False;
-                    inst_need_rs2 <= `False;                   
-                end
-                `Auipc: begin
-                    inst_type <= `Other_Type;
-                    issue_rs <= `True;
-                    rs_imm <= U_Imm;
-                    rs_op <= `op_auipc;
-                    rs1_addr <= `Zero_Reg_Addr;
-                    rs2_addr <= `Zero_Reg_Addr;
-                    needsetbusy <= `True;
-                    inst_need_rs1 <= `False;
-                    inst_need_rs2 <= `False;  
-                end
-                `Jal: begin   //need to be finished
-                    issue_rob <= `True;
-                    inst_type <= `Other_Type;
-                    issue_rs <= `True;
-                    rs_imm <= J_Imm;
-                    rs_op <= `op_jal;
-                    rs1_addr <= `Zero_Reg_Addr;
-                    rs2_addr <= `Zero_Reg_Addr;
-                    needsetbusy <= `True;
-                    inst_need_rs1 <= `False;
-                    inst_need_rs2 <= `False; 
-                end
-                `Jalr: begin  //need to be finished
-                    inst_type <= `Jalr_Type;
-                    issue_rs <= `True;
-                    rs_imm <= I_Imm;
-                    rs_op <= `op_jalr;
-                    rs1_addr <= inst[19:15];
-                    rs2_addr <= `Zero_Reg_Addr;
-                    needsetbusy <= `True;
-                    inst_need_rs1 <= `True;
-                    inst_need_rs2 <= `False;
-                end
-                `B_Type: begin
-                    inst_type <= `Branch_Type;
-                    issue_rs <= `True;
-                    rs_imm <= B_Imm;
-                    case (inst[14:12]) 
-                        `beq : begin
-                            rs_op <= `op_beq;
-                        end
-                        `bne : begin
-                            rs_op <= `op_bne;
-                        end
-                        `blt : begin
-                            rs_op <= `op_blt;
-                        end
-                        `bge : begin
-                            rs_op <= `op_bge;
-                        end
-                        `bltu : begin
-                            rs_op <= `op_bltu;
-                        end
-                        `bgeu : begin
-                            rs_op <= `op_bgeu;
-                        end
-                    endcase
-                    rs1_addr <= inst[19:15];
-                    rs2_addr <= inst[24:20];
-                    needsetbusy <= `False;
-                    inst_need_rs1 <= `True;
-                    inst_need_rs2 <= `True; 
-                end
-                `L_Type: begin
-                    inst_type <= `Other_Type;
-                    issue_slb <= `True;
-                    slb_imm <= I_Imm;
-                    case (inst[14:12])
-                        `lb : begin
-                            slb_op <= `op_lb;
-                        end
-                        `lh : begin
-                            slb_op <= `op_lh;
-                        end
-                        `lw : begin
-                            slb_op <= `op_lw;
-                        end
-                        `lbu : begin
-                            slb_op <= `op_lbu;
-                        end
-                        `lhu : begin
-                            slb_op <= `op_lhu;
-                        end
-                    endcase
-                    rs1_addr <= inst[19:15];
-                    rs2_addr <= `Zero_Reg_Addr;
-                    needsetbusy <= `True;
-                    inst_need_rs1 <= `True;
-                    inst_need_rs2 <= `False;       
-                end
-                `S_Type: begin
-                    inst_type <= `Store_Type;
-                    issue_slb <= `True;
-                    slb_imm <= S_Imm;
-                    case (inst[14:12])
-                        `sb : begin
-                            slb_op <= `op_sb;
-                        end
-                        `sh : begin
-                            slb_op <= `op_sh;
-                        end
-                        `sw : begin
-                            slb_op <= `op_sw;
-                        end
-                    endcase
-                    rs1_addr <= inst[19:15];
-                    rs2_addr <= inst[24:20];
-                    needsetbusy <= `False;
-                    inst_need_rs1 <= `True;
-                    inst_need_rs2 <= `True;
-                end
-                `OtherI: begin
-                    inst_type <= `Other_Type;
-                    issue_rs <= `True;
-                    rs_imm <= I_Imm;
-                    case (inst[14:12])
-                        `addi : begin
-                            rs_op <= `op_addi;
-                        end
-                        `slti : begin
-                            rs_op <= `op_slti;
-                        end
-                        `sltiu : begin
-                            rs_op <= `op_sltiu;
-                        end
-                        `xori : begin
-                            rs_op <= `op_xori;
-                        end
-                        `ori : begin
-                            rs_op <= `op_ori;
-                        end
-                        `andi : begin
-                            rs_op <= `op_andi;
-                        end
-                        `slli : begin
-                            rs_op <= `op_slli;
-                            shamt <= inst[25:20];
-                        end
-                        `sr : begin
-                            case (inst[31:26])
-                                `srli : begin
-                                    rs_op <= `op_srli;
-                                    shamt <= inst[25:20];
-                                end
-                                `srai : begin
-                                    rs_op <= `op_srai;
-                                    shamt <= inst[25:20];
-                                end
-                            endcase
-                        end
-                    endcase
-                    rs1_addr <= inst[19:15];
-                    rs2_addr <= `Zero_Reg_Addr;
-                    needsetbusy <= `True;
-                    inst_need_rs1 <= `True;
-                    inst_need_rs2 <= `False; 
-                end
-                `Other: begin
-                    inst_type <= `Other_Type;
-                    issue_rs <= `True;
-                    case (inst[14:12])
-                        `add_sub : begin
-                            case (inst[31:26])
-                                `add : begin
-                                    rs_op <= `op_add;
-                                end
-                                `sub : begin
-                                    rs_op <= `op_sub;
-                                end
-                            endcase
-                        end
-                        `sll : begin
-                            rs_op <= `op_sll;
-                        end
-                        `slt : begin
-                            rs_op <= `op_slt;
-                        end
-                        `sltu : begin
-                            rs_op <= `op_sltu;
-                        end
-                        `XOR : begin
-                            rs_op <= `op_xor;
-                        end
-                        `srl_a : begin
-                            case (inst[31:26])
-                                `srl : begin
-                                    rs_op <= `op_srl;
-                                end
-                                `sra : begin
-                                    rs_op <= `op_sra;
-                                end
-                            endcase
-                        end
-                        `OR : begin
-                            rs_op <= `op_or;
-                        end
-                        `AND : begin
-                            rs_op <= `op_and;
-                        end
-                    endcase
-                    rs1_addr <= inst[19:15];
-                    rs2_addr <= inst[24:20];
-                    needsetbusy <= `True;
-                    inst_need_rs1 <= `True;
-                    inst_need_rs2 <= `True;
-                end
-            endcase
-            
+            if(can_issue) begin
+                dest <= inst[11:7];
+                rd_addr <= inst[11:7];
+                rd_rob_num <= rob_avail_num;
+                rs_rd_robnum <= rob_avail_num;
+                slb_rd_robnum <= rob_avail_num;
+                rs_pc <= pc;
+                out_has_jump <= in_has_jump;
+                        
+                issue_rob <= `True;
+                issue_rs <= `False;
+                needsetbusy <= `False;
+                issue_slb <= `False;
+                case (inst[6:0])
+                    `Lui: begin 
+                        inst_type <= `Other_Type;
+                        issue_rs <= `True;
+                        rs_imm <= U_Imm;
+                        rs_op <= `op_lui;
+                        rs1_addr <= `Zero_Reg_Addr;
+                        rs2_addr <= `Zero_Reg_Addr;
+                        needsetbusy <= `True;
+                        inst_need_rs1 <= `False;
+                        inst_need_rs2 <= `False;                   
+                    end
+                    `Auipc: begin
+                        inst_type <= `Other_Type;
+                        issue_rs <= `True;
+                        rs_imm <= U_Imm;
+                        rs_op <= `op_auipc;
+                        rs1_addr <= `Zero_Reg_Addr;
+                        rs2_addr <= `Zero_Reg_Addr;
+                        needsetbusy <= `True;
+                        inst_need_rs1 <= `False;
+                        inst_need_rs2 <= `False;  
+                    end
+                    `Jal: begin   //need to be finished
+                        issue_rob <= `True;
+                        inst_type <= `Other_Type;
+                        issue_rs <= `True;
+                        rs_imm <= J_Imm;
+                        rs_op <= `op_jal;
+                        rs1_addr <= `Zero_Reg_Addr;
+                        rs2_addr <= `Zero_Reg_Addr;
+                        needsetbusy <= `True;
+                        inst_need_rs1 <= `False;
+                        inst_need_rs2 <= `False; 
+                    end
+                    `Jalr: begin  //need to be finished
+                        inst_type <= `Jalr_Type;
+                        issue_rs <= `True;
+                        rs_imm <= I_Imm;
+                        rs_op <= `op_jalr;
+                        rs1_addr <= inst[19:15];
+                        rs2_addr <= `Zero_Reg_Addr;
+                        needsetbusy <= `True;
+                        inst_need_rs1 <= `True;
+                        inst_need_rs2 <= `False;
+                    end
+                    `B_Type: begin
+                        inst_type <= `Branch_Type;
+                        issue_rs <= `True;
+                        rs_imm <= B_Imm;
+                        case (inst[14:12]) 
+                            `beq : begin
+                                rs_op <= `op_beq;
+                            end
+                            `bne : begin
+                                rs_op <= `op_bne;
+                            end
+                            `blt : begin
+                                rs_op <= `op_blt;
+                            end
+                            `bge : begin
+                                rs_op <= `op_bge;
+                            end
+                            `bltu : begin
+                                rs_op <= `op_bltu;
+                            end
+                            `bgeu : begin
+                                rs_op <= `op_bgeu;
+                            end
+                        endcase
+                        rs1_addr <= inst[19:15];
+                        rs2_addr <= inst[24:20];
+                        needsetbusy <= `False;
+                        inst_need_rs1 <= `True;
+                        inst_need_rs2 <= `True; 
+                    end
+                    `L_Type: begin
+                        inst_type <= `Other_Type;
+                        issue_slb <= `True;
+                        slb_imm <= I_Imm;
+                        case (inst[14:12])
+                            `lb : begin
+                                slb_op <= `op_lb;
+                            end
+                            `lh : begin
+                                slb_op <= `op_lh;
+                            end
+                            `lw : begin
+                                slb_op <= `op_lw;
+                            end
+                            `lbu : begin
+                                slb_op <= `op_lbu;
+                            end
+                            `lhu : begin
+                                slb_op <= `op_lhu;
+                            end
+                        endcase
+                        rs1_addr <= inst[19:15];
+                        rs2_addr <= `Zero_Reg_Addr;
+                        needsetbusy <= `True;
+                        inst_need_rs1 <= `True;
+                        inst_need_rs2 <= `False;       
+                    end
+                    `S_Type: begin
+                        inst_type <= `Store_Type;
+                        issue_slb <= `True;
+                        slb_imm <= S_Imm;
+                        case (inst[14:12])
+                            `sb : begin
+                                slb_op <= `op_sb;
+                            end
+                            `sh : begin
+                                slb_op <= `op_sh;
+                            end
+                            `sw : begin
+                                slb_op <= `op_sw;
+                            end
+                        endcase
+                        rs1_addr <= inst[19:15];
+                        rs2_addr <= inst[24:20];
+                        needsetbusy <= `False;
+                        inst_need_rs1 <= `True;
+                        inst_need_rs2 <= `True;
+                    end
+                    `OtherI: begin
+                        inst_type <= `Other_Type;
+                        issue_rs <= `True;
+                        rs_imm <= I_Imm;
+                        case (inst[14:12])
+                            `addi : begin
+                                rs_op <= `op_addi;
+                            end
+                            `slti : begin
+                                rs_op <= `op_slti;
+                            end
+                            `sltiu : begin
+                                rs_op <= `op_sltiu;
+                            end
+                            `xori : begin
+                                rs_op <= `op_xori;
+                            end
+                            `ori : begin
+                                rs_op <= `op_ori;
+                            end
+                            `andi : begin
+                                rs_op <= `op_andi;
+                            end
+                            `slli : begin
+                                rs_op <= `op_slli;
+                                shamt <= inst[24:20];
+                            end
+                            `sr : begin
+                                case (inst[31:25])
+                                    `srli : begin
+                                        rs_op <= `op_srli;
+                                        shamt <= inst[24:20];
+                                    end
+                                    `srai : begin
+                                        rs_op <= `op_srai;
+                                        shamt <= inst[24:20];
+                                    end
+                                endcase
+                            end
+                        endcase
+                        rs1_addr <= inst[19:15];
+                        rs2_addr <= `Zero_Reg_Addr;
+                        needsetbusy <= `True;
+                        inst_need_rs1 <= `True;
+                        inst_need_rs2 <= `False; 
+                    end
+                    `Other: begin
+                        inst_type <= `Other_Type;
+                        issue_rs <= `True;
+                        case (inst[14:12])
+                            `add_sub : begin
+                                case (inst[31:25])
+                                    `add : begin
+                                        rs_op <= `op_add;
+                                    end
+                                    `sub : begin
+                                        rs_op <= `op_sub;
+                                    end
+                                endcase
+                            end
+                            `sll : begin
+                                rs_op <= `op_sll;
+                            end
+                            `slt : begin
+                                rs_op <= `op_slt;
+                            end
+                            `sltu : begin
+                                rs_op <= `op_sltu;
+                            end
+                            `XOR : begin
+                                rs_op <= `op_xor;
+                            end
+                            `srl_a : begin
+                                case (inst[31:25])
+                                    `srl : begin
+                                        rs_op <= `op_srl;
+                                    end
+                                    `sra : begin
+                                        rs_op <= `op_sra;
+                                    end
+                                endcase
+                            end
+                            `OR : begin
+                                rs_op <= `op_or;
+                            end
+                            `AND : begin
+                                rs_op <= `op_and;
+                            end
+                        endcase
+                        rs1_addr <= inst[19:15];
+                        rs2_addr <= inst[24:20];
+                        needsetbusy <= `True;
+                        inst_need_rs1 <= `True;
+                        inst_need_rs2 <= `True;
+                    end
+                endcase
+            end
         end
     end
 

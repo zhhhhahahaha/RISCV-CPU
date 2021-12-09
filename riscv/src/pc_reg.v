@@ -36,6 +36,7 @@ module pc_reg (
         else if(has_misbranch) begin
             pc <= in_true_pc;
             pc_ready <= `True;
+            //$display("%d", pc);
         end
         else if (rdy) begin
             if(has_ask) begin
@@ -43,14 +44,17 @@ module pc_reg (
                 if (inst[6:0]==`B_Type) begin
                     pc <=  pc + B_Imm;
                     has_jump <= `True;
+                    //$display("%d", pc);
                 end
                 else if(inst[6:0]==`Jal) begin
                     pc <= pc + J_Imm;
                     has_jump <= `True;
+                    //$display("%d", pc);
                 end
                 else begin
                     pc <= pc + 4;
                     has_jump <= `False;
+                    //$display("%d", pc);
                 end
             end
             else begin

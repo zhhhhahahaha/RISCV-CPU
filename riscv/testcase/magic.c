@@ -36,12 +36,12 @@ void search(int x, int y, int z)
                 {
                 	for (j = 0;j <= 2;j ++)
                     {
-                        outl(make[i][j]);
-                        print(" ");
+                        //outl(make[i][j]);
+                        //print(" ");
                     }
-                    print("\n");
+                    //print("\n");
                 }
-               print("\n");
+               //print("\n");
             }
        }
        else {
@@ -77,6 +77,7 @@ int main()
 {
 	origin(3);
     search(0, 0, 0);
-    outlln(count[0]);
+    //outlln(count[0]);
     return 0;
 }
+

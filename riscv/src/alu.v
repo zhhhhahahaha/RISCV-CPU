@@ -31,142 +31,145 @@ module alu (
         else if (has_misbranch) begin
             has_to_rob <= `False;
         end
-        if(rdy&&has_to_alu) begin
-            out_rd_robnum <= in_rd_robnum;
-            has_to_rob <= `True;
-            case (op)
-                `op_lui : begin
-                    out_rd_data <= imm;
-                end
-                `op_auipc : begin
-                    out_rd_data <= pc + imm;
-                end
-                `op_jal : begin
-                    out_rd_data <= pc + 4;
-                end
-                `op_jalr : begin
-                    out_rd_data <= pc + 4;
-                    need_jump <= `True;
-                    true_pc <= (rs1_oprand + imm)&~1;
-                end
-                `op_beq : begin
-                    if(rs1_oprand==rs2_oprand)begin
+        if(rdy) begin
+            has_to_rob <= `False;
+            if(has_to_alu)begin
+                out_rd_robnum <= in_rd_robnum;
+                has_to_rob <= `True;
+                case (op)
+                    `op_lui : begin
+                        out_rd_data <= imm;
+                    end
+                    `op_auipc : begin
+                        out_rd_data <= pc + imm;
+                    end
+                    `op_jal : begin
+                        out_rd_data <= pc + 4;
+                    end
+                    `op_jalr : begin
+                        out_rd_data <= pc + 4;
                         need_jump <= `True;
-                        true_pc <= pc + imm;
+                        true_pc <= (rs1_oprand + imm)&~1;
                     end
-                    else begin
-                        need_jump <= `False;
-                        true_pc <= pc + 4;
+                    `op_beq : begin
+                        if(rs1_oprand==rs2_oprand)begin
+                            need_jump <= `True;
+                            true_pc <= pc + imm;
+                        end
+                        else begin
+                            need_jump <= `False;
+                            true_pc <= pc + 4;
+                        end
                     end
-                end
-                `op_bne : begin
-                    if(!rs1_oprand==rs2_oprand)begin
-                        need_jump <= `True;
-                        true_pc <= pc + imm;
+                    `op_bne : begin
+                        if(!rs1_oprand==rs2_oprand)begin
+                            need_jump <= `True;
+                            true_pc <= pc + imm;
+                        end
+                        else begin
+                            need_jump <= `False;
+                            true_pc <= pc + 4;
+                        end
                     end
-                    else begin
-                        need_jump <= `False;
-                        true_pc <= pc + 4;
+                    `op_blt : begin
+                        if($signed(rs1_oprand)<$signed(rs2_oprand))begin
+                            need_jump <= `True;
+                            true_pc <= pc + imm;
+                        end
+                        else begin
+                            need_jump <= `False;
+                            true_pc <= pc + 4;
+                        end
                     end
-                end
-                `op_blt : begin
-                    if($signed(rs1_oprand)<$signed(rs2_oprand))begin
-                        need_jump <= `True;
-                        true_pc <= pc + imm;
+                    `op_bge : begin
+                        if($signed(rs1_oprand)>=$signed(rs2_oprand))begin
+                            need_jump <= `True;
+                            true_pc <= pc + imm;
+                        end
+                        else begin
+                            need_jump <= `False;
+                            true_pc <= pc + 4;
+                        end
                     end
-                    else begin
-                        need_jump <= `False;
-                        true_pc <= pc + 4;
+                    `op_bltu : begin
+                        if(rs1_oprand<rs2_oprand) begin
+                            need_jump <= `True;
+                            true_pc <= pc + imm;
+                        end
+                        else begin
+                            need_jump <= `False;
+                            true_pc <= pc + 4;
+                        end
                     end
-                end
-                `op_bge : begin
-                    if($signed(rs1_oprand)>=$signed(rs2_oprand))begin
-                        need_jump <= `True;
-                        true_pc <= pc + imm;
+                    `op_bgeu : begin
+                        if(rs1_oprand>=rs2_oprand) begin
+                            need_jump <= `True;
+                            true_pc <= pc + imm;
+                        end
+                        else begin
+                            need_jump <= `False;
+                            true_pc <= pc + 4;
+                        end
                     end
-                    else begin
-                        need_jump <= `False;
-                        true_pc <= pc + 4;
+                    `op_addi : begin
+                        out_rd_data <= rs1_oprand + imm;
                     end
-                end
-                `op_bltu : begin
-                    if(rs1_oprand<rs2_oprand) begin
-                        need_jump <= `True;
-                        true_pc <= pc + imm;
+                    `op_slti : begin
+                        out_rd_data <= ($signed(rs1_oprand)<$signed(imm)) ? 32'd1 : `Zero_Data;
                     end
-                    else begin
-                        need_jump <= `False;
-                        true_pc <= pc + 4;
+                    `op_sltiu : begin
+                        out_rd_data <= (rs1_oprand<imm)? 32'd1 : `Zero_Data;
                     end
-                end
-                `op_bgeu : begin
-                    if(rs1_oprand>=rs2_oprand) begin
-                        need_jump <= `True;
-                        true_pc <= pc + imm;
+                    `op_xori : begin
+                        out_rd_data <= rs1_oprand ^ imm;
                     end
-                    else begin
-                        need_jump <= `False;
-                        true_pc <= pc + 4;
+                    `op_ori : begin
+                        out_rd_data <= rs1_oprand | imm;
                     end
-                end
-                `op_addi : begin
-                    out_rd_data <= rs1_oprand + imm;
-                end
-                `op_slti : begin
-                    out_rd_data <= ($signed(rs1_oprand)<$signed(imm)) ? 32'd1 : `Zero_Data;
-                end
-                `op_sltiu : begin
-                    out_rd_data <= (rs1_oprand<imm)? 32'd1 : `Zero_Data;
-                end
-                `op_xori : begin
-                    out_rd_data <= rs1_oprand ^ imm;
-                end
-                `op_ori : begin
-                    out_rd_data <= rs1_oprand | imm;
-                end
-                `op_andi : begin
-                    out_rd_data <= rs1_oprand & imm;
-                end
-                `op_slli : begin
-                    out_rd_data <= rs1_oprand << shamt;
-                end
-                `op_srli : begin
-                    out_rd_data <= rs1_oprand >> shamt;
-                end
-                `op_srai : begin
-                    out_rd_data <= (rs1_oprand >> shamt) | ({32{rs1_oprand[31]}} << (6'd32 - shamt));
-                end
-                `op_add : begin
-                    out_rd_data <= rs1_oprand + rs2_oprand;
-                end
-                `op_sub : begin
-                    out_rd_data <= rs1_oprand - rs2_oprand;
-                end
-                `op_sll : begin
-                    out_rd_data <= rs1_oprand << rs2_oprand[4:0];
-                end
-                `op_slt : begin
-                    out_rd_data <= ($signed(rs1_oprand)<$signed(rs2_oprand)) ? 32'd1 : `Zero_Data;
-                end
-                `op_sltu : begin
-                    out_rd_data <= (rs1_oprand<rs2_oprand) ? 32'd1 : `Zero_Data;
-                end
-                `op_xor : begin
-                    out_rd_data <= rs1_oprand ^ rs2_oprand;
-                end
-                `op_srl : begin
-                    out_rd_data <= rs1_oprand >> rs2_oprand[4:0];
-                end
-                `op_sra : begin
-                    out_rd_data <= (rs1_oprand >> rs2_oprand[4:0]) | ({32{rs1_oprand[31]}} << (6'd32 - {1'b0, rs2_oprand[4:0]}));
-                end
-                `op_or : begin
-                    out_rd_data <= rs1_oprand | rs2_oprand;
-                end
-                `op_and : begin
-                    out_rd_data <= rs1_oprand & rs2_oprand;
-                end
-            endcase
+                    `op_andi : begin
+                        out_rd_data <= rs1_oprand & imm;
+                    end
+                    `op_slli : begin
+                        out_rd_data <= rs1_oprand << shamt;
+                    end
+                    `op_srli : begin
+                        out_rd_data <= rs1_oprand >> shamt;
+                    end
+                    `op_srai : begin
+                        out_rd_data <= (rs1_oprand >> shamt) | ({32{rs1_oprand[31]}} << (6'd32 - {1'b0,shamt}));
+                    end
+                    `op_add : begin
+                        out_rd_data <= rs1_oprand + rs2_oprand;
+                    end
+                    `op_sub : begin
+                        out_rd_data <= rs1_oprand - rs2_oprand;
+                    end
+                    `op_sll : begin
+                        out_rd_data <= rs1_oprand << rs2_oprand[4:0];
+                    end
+                    `op_slt : begin
+                        out_rd_data <= ($signed(rs1_oprand)<$signed(rs2_oprand)) ? 32'd1 : `Zero_Data;
+                    end
+                    `op_sltu : begin
+                        out_rd_data <= (rs1_oprand<rs2_oprand) ? 32'd1 : `Zero_Data;
+                    end
+                    `op_xor : begin
+                        out_rd_data <= rs1_oprand ^ rs2_oprand;
+                    end
+                    `op_srl : begin
+                        out_rd_data <= rs1_oprand >> rs2_oprand[4:0];
+                    end
+                    `op_sra : begin
+                        out_rd_data <= (rs1_oprand >> rs2_oprand[4:0]) | ({32{rs1_oprand[31]}} << (6'd32 - {1'b0, rs2_oprand[4:0]}));
+                    end
+                    `op_or : begin
+                        out_rd_data <= rs1_oprand | rs2_oprand;
+                    end
+                    `op_and : begin
+                        out_rd_data <= rs1_oprand & rs2_oprand;
+                    end
+                endcase
+            end
         end
     end
 

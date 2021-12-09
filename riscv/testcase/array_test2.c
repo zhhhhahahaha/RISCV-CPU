@@ -10,14 +10,15 @@ int main()
 	pb[1] = pa;
 	pb[2] = pa;
 	pb[3] = pa;
-	outlln(4);
+	//outlln(4);
 	for (i = 0; i < 4; i++)
-		pb[0][i] = inl();
+		pb[0][i] = i + 1; //inl()
 	for (i = 0; i < 4; i++)
-		outl(pb[1][i]);
+		//outl(pb[1][i]);
 	println("");
 	for (i = 0; i < 4; i++)
 		pb[2][i] = 0;
-	for (i = 0; i < 4; i++)
-		outl(pb[3][i]);
+	for (i = 0; i < 4; i++){
+		//outl(pb[3][i]);
+	}
 }

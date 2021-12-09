@@ -38,10 +38,10 @@ int pd(int x) {
 void show() {
     int i;
     for (i = 0; i < now; ++i){
-        outl(a[i]);
-        print(" ");
+        //outl(a[i]);
+        //print(" ");
     }
-    println("");
+    //println("");
 }
 int win()
 {
@@ -100,14 +100,16 @@ int main() {
 	h = 0;
     Q = M / A;
     R = M % A;
+    
     if (!pd(n)) {
-        println("Sorry, the number n must be a number s.t. there exists i satisfying n=1+2+...+i");
+        //println("Sorry, the number n must be a number s.t. there exists i satisfying n=1+2+...+i");
         return 1;
     }
-    println("Let's start!");
+    //println("Let's start!");
     initialize(3654898);
     now = random() % 10 + 1;
-    outlln(now);
+    //outlln(now);
+    
     for (; i < now - 1; ++i)
     {
         a[i] = random() % 10 + 1;
@@ -119,16 +121,16 @@ int main() {
     show();
     merge();
     while (!win()) {
-        print("step ");
-        outl(++count);
-        println(":");
+        //print("step ");
+        ++count;//outl(++count);
+        //println(":");
         move();
         merge();
         show();
         sleep(10); // to prevent UART buffer from overflowing
     }
-    print("Total: ");
-    outl(count);
-    println(" step(s)");
+    //print("Total: ");
+    //outl(count);
+    //println(" step(s)");
     return 0;
 }

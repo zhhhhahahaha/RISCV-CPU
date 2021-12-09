@@ -34,11 +34,12 @@ int main() {
                 float nd = 1.0f / mysqrt(nx * nx + ny * ny + nz * nz);
                 float d = (nx + ny - nz) * nd * 0.5f + 0.5f;
                 int index = (int)(d * 5.0f);
-                putchar(".:-=+*#%@"[index]);
+                //putchar(".:-=+*#%@"[index]);
             }
-            else
-                putchar('_');
+            else{
+                //putchar('_');
+            }
         }
-        putchar('\n');
+        //putchar('\n');
     }
 }

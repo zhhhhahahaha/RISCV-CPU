@@ -24,5 +24,5 @@ int main()
     for (i = 0;i < 100;i++)
         for (j = 0;j < 100;j++)
             sum = sum + a[i][j];
-    outlln(sum);
+    //outlln(sum);
 }

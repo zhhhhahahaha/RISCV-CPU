@@ -18,7 +18,7 @@ int M = 0;
 int check[20];
 
 int main() {
-    N = inl();
+    N = 10; //inl()
 	int i = 0;
 	while ( i <= N ) check[i++] = 1;
 	int phi[15];
@@ -44,7 +44,7 @@ int main() {
 				phi[k * P[i]] = phi[k] * (P[i] - 1);
 			}
 		}
-		outlln(phi[k]);
+		//outlln(phi[k]);
 	}
     return 0;
 }
