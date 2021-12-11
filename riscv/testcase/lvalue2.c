@@ -6,5 +6,5 @@ int main()
     b[2]=2;
     int *p;
 	p=b;
-    //outlln(p[2]);
+    outlln(p[2]);
 }

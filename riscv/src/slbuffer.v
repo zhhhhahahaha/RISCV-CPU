@@ -62,7 +62,7 @@ module slbuffer (
     reg is_waiting;
     integer i;
 
-    assign full = has_issue ? head == tail+2 : head == tail + 1; //only 15 entries can be used
+    assign full = has_issue? head==tail+2 || (tail==4'd14&&head==4'd0) || (tail==4'd15&&head==4'd1) : head == tail+1 || (tail==4'd15&&head==4'd0); //only 15 entries can be used
 
     assign slb_avail = !full;
 
@@ -186,7 +186,7 @@ module slbuffer (
                         out_rd_data <= {16{in_mem_data[15],in_mem_data[15:0]}};
                     end
                 endcase
-                if(head+1!=tail && rs1_ready[head+1] && rs2_ready[head+1]) begin
+                /*if(head+1!=tail && rs1_ready[head+1] && rs2_ready[head+1]) begin
                     is_waiting <= `True;
                     case(op[head+1])
                     `op_lb: begin
@@ -248,7 +248,7 @@ module slbuffer (
                         end
                     end
                     endcase
-                end 
+                end*/ 
             end
             if(has_rd_ready_1||has_rd_ready_2)begin
                 for(i = 0; i <= 15; i = i + 1) begin

@@ -22,7 +22,7 @@ initial begin
   rst=0; 
   forever begin 
     #1 clk=!clk;
-    /*if($time >= 20000) begin
+    /*if($time >= 40000) begin
       $finish;
     end*/
 

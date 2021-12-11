@@ -50,6 +50,10 @@ module ask_memory (
     reg [`Data_Len] slb_data;
     reg [`Data_Len] slb_read_buffer;
     reg [2:0] slb_wr_state;
+    integer file;
+    initial begin
+        file = $fopen("a.out", "w");
+    end
 
     always @(posedge clk) begin
         if(rst) begin
@@ -90,14 +94,18 @@ module ask_memory (
                 slb_data <= in_write_data;
             end
             if((in_read_mem||in_write_mem) && !fetch_is_reading) begin
-                slb_is_wr <= `True;
-                ram_wr <= wr? `Write : `Read;
-                ram_addr <= in_slb_mem_addr;
-                out_ram_data <= in_write_data[7:0];
-                slb_wr_state <= 3'd0;
+                if(!(in_write_mem && in_slb_mem_addr==32'h30000)) begin
+                    slb_is_wr <= `True;
+                    fetch_is_reading <= `False;
+                    ram_wr <= in_write_mem? `Write : `Read;
+                    ram_addr <= in_slb_mem_addr;
+                    out_ram_data <= in_write_data[7:0];
+                    slb_wr_state <= 3'd0;
+                end
             end
-            if(slb_waiting && !fetch_is_reading && !slb_is_wr) begin
+            if(slb_waiting && !fetch_is_reading && !slb_is_wr && slb_mem_addr!=32'h30000) begin
                 slb_is_wr <= `True;
+                fetch_is_reading <= `False;
                 ram_wr <= wr? `Write : `Read;
                 ram_addr <= slb_mem_addr;
                 out_ram_data <= slb_data[7:0];
@@ -105,15 +113,43 @@ module ask_memory (
             end
             if(in_fetch_mem_ask && !slb_is_wr) begin
                 fetch_is_reading <= `True;
+                slb_is_wr <= `False;
                 read_state <= 0;
                 ram_wr <= `Read;
                 ram_addr <= in_fetch_mem_addr;
             end
             if(fetch_waiting && !fetch_is_reading && !slb_is_wr) begin
                 fetch_is_reading <= `True;
+                slb_is_wr <= `False;
                 read_state <= 0;
                 ram_wr <= `Read;
                 ram_addr <= fetch_mem_addr; 
+            end
+            if(in_write_mem && !fetch_is_reading && in_slb_mem_addr==32'h30000)begin
+                if(!io_buffer_full) begin
+                    ram_wr <= `Write;
+                    ram_addr <= in_slb_mem_addr;
+                    out_ram_data <= in_write_data[7:0];
+                    out_slb_mem_ready <= `True;
+                    slb_waiting <= `False;
+                    slb_is_wr <= `False;
+                    fetch_is_reading <= `False;
+                    //$fwrite(file, $time);
+                    //$fwrite(file, "  ");
+                    //$fdisplay(file, in_write_data[7:0]);
+                end
+            end
+            if(slb_waiting && wr==`Write &&!fetch_is_reading && !slb_is_wr && slb_mem_addr==32'h30000 && !io_buffer_full)begin
+                ram_wr <= `Write;
+                ram_addr <= slb_mem_addr;
+                out_ram_data <= slb_data[7:0];
+                out_slb_mem_ready <= `True;
+                slb_waiting <= `False;
+                slb_is_wr <= `False;
+                fetch_is_reading <= `False;
+                //$fwrite(file, $time);
+                //$fwrite(file, "  ");
+                //$fdisplay(file, slb_data[7:0]);
             end
             if(fetch_is_reading) begin
                 case(read_state)
@@ -196,7 +232,7 @@ module ask_memory (
                     end
                 endcase
             end
-            if(slb_is_wr && wr==`Write) begin
+            if(slb_is_wr && wr==`Write && slb_mem_addr!=32'd30000) begin
                 case(slb_wr_state)
                     3'd0 : begin
                         if(byte_num==3'd1) begin

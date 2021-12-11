@@ -44,7 +44,7 @@ int main() {
 				phi[k * P[i]] = phi[k] * (P[i] - 1);
 			}
 		}
-		//outlln(phi[k]);
+		outlln(phi[k]);
 	}
     return 0;
 }

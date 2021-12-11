@@ -33,6 +33,6 @@ int main() {
 			total++;
 		}
 	
-	//outlln(total);
+	outlln(total);
 	return 0;
 }

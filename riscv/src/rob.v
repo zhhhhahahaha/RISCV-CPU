@@ -50,6 +50,7 @@ module rob (
     output reg has_to_reg,
     output reg[`Reg_Addr_Len] dest_reg_num,
     output reg[`Data_Len] out_reg_data,
+    output reg[`Rob_Addr_Len] out_reg_rob_num,
 
     //to pc_reg
     output reg [`Addr_Len] out_true_pc
@@ -72,7 +73,7 @@ module rob (
         file = $fopen("a.out", "w");
     end
 
-    assign full = hasissued? head==tail+2 : head == tail+1; //only 15 entries can be used 
+    assign full = hasissued? head==tail+2 || (tail==4'd14&&head==4'd0) || (tail==4'd15&&head==4'd1) : head == tail+1 || (tail==4'd15&&head==4'd0); //only 15 entries can be used 
 
     //to slbuffer
     assign can_store = (inst_type_field[head]==`Store_Type)? `True : `False; 
@@ -155,6 +156,7 @@ module rob (
                         has_to_reg <= `True; 
                         dest_reg_num <= dest_field[head];
                         out_reg_data <= value_field[head];
+                        out_reg_rob_num <= head;
                         head <= head + 1;
                     end
                     `Store_Type : begin
@@ -173,14 +175,14 @@ module rob (
                             $fwrite(file, "  ");
                             $fdisplay(file, "%d",need_jump[head]);*/
                             if(head!=4'd15)begin
-                                if(!has_jump[head+1]==need_jump[head])begin
+                                if(has_jump[head+1]!=need_jump[head])begin
                                     tail <= head + 1;
                                     has_misbranch <= `True;
                                     out_true_pc <= true_pc[head];
                                 end
                             end
                             else begin
-                                if(!has_jump[0]==need_jump[head])begin
+                                if(has_jump[0]!=need_jump[head])begin
                                     tail <= head + 1;
                                     has_misbranch <= `True;
                                     out_true_pc <= true_pc[head];
@@ -192,6 +194,7 @@ module rob (
                         has_to_reg <= `True;
                         dest_reg_num <= dest_field[head];
                         out_reg_data <= value_field[head];
+                        out_reg_rob_num <= head;
                         head <= head + 1;
                         tail <= head + 1;
                         has_misbranch <= `True;

@@ -166,6 +166,7 @@ module cpu(
   wire rs2_busy;
   wire [`Rob_Addr_Len] rs1_rob_num;
   wire [`Rob_Addr_Len] rs2_rob_num;
+  wire [`Rob_Addr_Len] reg_rob_num;
 
 
   pc_reg pc_reg_m(
@@ -268,7 +269,8 @@ module cpu(
     .rs1_addr(rs1_addr), .rs2_addr(rs2_addr), .needsetbusy(needsetbusy), 
     .rd_addr(rd_addr), .rd_rob_num(rd_rob_num),
 
-    .has_from_rob(has_to_reg), .dest_reg_num(dest_reg_num), .in_reg_data(out_reg_data)
+    .has_from_rob(has_to_reg), .dest_reg_num(dest_reg_num), .in_reg_data(out_reg_data),
+    .in_reg_rob_num(reg_rob_num)
 
   );
 
@@ -294,6 +296,7 @@ module cpu(
     .can_store(can_store), 
 
     .has_to_reg(has_to_reg), .dest_reg_num(dest_reg_num), .out_reg_data(out_reg_data),
+    .out_reg_rob_num(reg_rob_num),
 
     .out_true_pc(out_true_pc)
   );

@@ -62,7 +62,7 @@ module alu (
                         end
                     end
                     `op_bne : begin
-                        if(!rs1_oprand==rs2_oprand)begin
+                        if(rs1_oprand!=rs2_oprand)begin
                             need_jump <= `True;
                             true_pc <= pc + imm;
                         end

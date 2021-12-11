@@ -25,7 +25,8 @@ module registerfile (
     //from rob
     input has_from_rob,
     input [`Reg_Addr_Len] dest_reg_num,
-    input [`Data_Len] in_reg_data
+    input [`Data_Len] in_reg_data,
+    input [`Rob_Addr_Len] in_reg_rob_num
 
     
 );
@@ -51,17 +52,20 @@ module registerfile (
             end
         end
         else if(rdy) begin
-            if (needsetbusy && rd_addr != `Zero_Reg_Addr) begin
-                busy[rd_addr] <= `True;
-                rob_num[rd_addr] <= rd_rob_num;
-            end
             if (has_from_rob && dest_reg_num!=`Zero_Reg_Addr) begin
-                busy[dest_reg_num] <= `False;
+                if(in_reg_rob_num==rob_num[dest_reg_num])begin
+                    busy[dest_reg_num] <= `False;
+                end
                 datas[dest_reg_num] <= in_reg_data;
                 $fwrite(file, "%d", dest_reg_num);
                 $fwrite(file, "  ");
-                $fwrite(file, $time);
-                $fdisplay(file, "%d", in_reg_data);
+                $fwrite(file, "%d", in_reg_data);
+                $fwrite(file, "  ");
+                $fdisplay(file, $time);
+            end
+            if (needsetbusy && rd_addr != `Zero_Reg_Addr) begin
+                busy[rd_addr] <= `True;
+                rob_num[rd_addr] <= rd_rob_num;
             end
         end
     end
