@@ -41,6 +41,7 @@ module issue (
     output reg[1:0] inst_type,
     output reg[`Reg_Addr_Len] dest,
     output reg out_has_jump,
+    output reg [`Addr_Len] out_pc,
     output [`Rob_Addr_Len] out_rs1_rob_num,
     output [`Rob_Addr_Len] out_rs2_rob_num,
 
@@ -157,6 +158,7 @@ module issue (
                 slb_rd_robnum <= rob_avail_num;
                 rs_pc <= pc;
                 out_has_jump <= in_has_jump;
+                out_pc <= pc;
                         
                 issue_rob <= `True;
                 issue_rs <= `False;

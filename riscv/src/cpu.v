@@ -64,6 +64,8 @@ module cpu(
   wire [`Data_Len] out_reg_data;
 
   wire [`Addr_Len] out_true_pc;
+  wire [`Addr_Len] out_pc_rob;
+  wire out_need_jump;
 
   //from pc_reg
   wire [`Addr_Len] out_next_pc;
@@ -94,6 +96,7 @@ module cpu(
   wire [1:0] inst_type;
   wire [`Reg_Addr_Len] dest;
   wire out_has_jump_issue;
+  wire [`Addr_Len] out_pc_issue;
   wire [`Rob_Addr_Len] out_rs1_rob_num;
   wire [`Rob_Addr_Len] out_rs2_rob_num;
 
@@ -177,7 +180,7 @@ module cpu(
 
     .inst(out_pc_inst), .has_ask(pc_reg_ask), 
 
-    .in_true_pc(out_true_pc)
+    .in_true_pc(out_true_pc), .in_pc(out_pc_rob), .in_need_jump(out_need_jump)
   );
 
   fetcher fetcher_m(
@@ -235,7 +238,7 @@ module cpu(
 
     .issue_rob(issue_rob), .inst_type(inst_type), .dest(dest),
     .out_has_jump(out_has_jump_issue), .out_rs1_rob_num(out_rs1_rob_num),
-    .out_rs2_rob_num(out_rs2_rob_num),
+    .out_rs2_rob_num(out_rs2_rob_num), .out_pc(out_pc_issue),
 
     .rs_avail(rs_avail),
 
@@ -280,7 +283,7 @@ module cpu(
 
     .inst_type(inst_type), .dest(dest), .rs1_rob_num(out_rs1_rob_num), 
     .rs2_rob_num(out_rs2_rob_num), .hasissued(issue_rob),
-    .in_has_jump(out_has_jump_issue),
+    .in_has_jump(out_has_jump_issue), .in_pc(out_pc_issue),
 
     .rob_avail(rob_avail), .rob_avail_num(rob_avail_num), .rs1_ready(rs1_ready),
     .rs2_ready(rs2_ready), .rs1_data(rs1_data), .rs2_data(rs2_data),
@@ -298,7 +301,7 @@ module cpu(
     .has_to_reg(has_to_reg), .dest_reg_num(dest_reg_num), .out_reg_data(out_reg_data),
     .out_reg_rob_num(reg_rob_num),
 
-    .out_true_pc(out_true_pc)
+    .out_true_pc(out_true_pc), .out_pc(out_pc_rob), .out_need_jump(out_need_jump)
   );
 
   rs rs_m(

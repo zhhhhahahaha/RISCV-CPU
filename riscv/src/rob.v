@@ -14,6 +14,7 @@ module rob (
     input [`Rob_Addr_Len] rs2_rob_num,
     input hasissued,
     input in_has_jump,
+    input [`Addr_Len] in_pc,
 
     //to issue
     output rob_avail,
@@ -53,7 +54,9 @@ module rob (
     output reg[`Rob_Addr_Len] out_reg_rob_num,
 
     //to pc_reg
-    output reg [`Addr_Len] out_true_pc
+    output reg [`Addr_Len] out_true_pc,
+    output reg [`Addr_Len] out_pc,
+    output reg out_need_jump
 
 
 
@@ -68,6 +71,7 @@ module rob (
     reg has_jump [`Rob_Size];
     reg need_jump [`Rob_Size];
     reg [`Addr_Len] true_pc [`Rob_Size];
+    reg [`Addr_Len] pc[`Rob_Size];
     integer file;
     initial begin
         file = $fopen("a.out", "w");
@@ -108,6 +112,7 @@ module rob (
                 has_jump[tail] <= in_has_jump;
                 need_jump[tail] <= `False;
                 true_pc[tail] <= `Zero_Reg_Addr;
+                pc[tail] <= in_pc;
                 tail <= tail + 1;
                 //$write("%d", tail);          
             end
@@ -179,6 +184,8 @@ module rob (
                                     tail <= head + 1;
                                     has_misbranch <= `True;
                                     out_true_pc <= true_pc[head];
+                                    out_pc <= pc[head];
+                                    out_need_jump <= need_jump[head];
                                 end
                             end
                             else begin
@@ -186,6 +193,8 @@ module rob (
                                     tail <= head + 1;
                                     has_misbranch <= `True;
                                     out_true_pc <= true_pc[head];
+                                    out_pc <= pc[head];
+                                    out_need_jump <= need_jump[head];
                                 end
                             end
                         end    
@@ -199,6 +208,8 @@ module rob (
                         tail <= head + 1;
                         has_misbranch <= `True;
                         out_true_pc <= true_pc[head];
+                        out_pc <= pc[head];
+                        out_need_jump <= need_jump[head];
                     end
                 endcase
             end

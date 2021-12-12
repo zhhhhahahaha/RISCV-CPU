@@ -17,6 +17,9 @@
 `define Reg_Addr_Len 4:0
 `define Zero_Reg_Addr 5'b00000
 
+//2-saturating counter
+`define Predictor_Size 255:0
+
 `define Slb_Size 15:0
 `define Slb_Addr_Len 3:0
 
