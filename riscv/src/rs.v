@@ -63,6 +63,10 @@ module rs (
     wire [3:0] rs_avail_num;
     wire [3:0] avail_to_alu_num;
     wire rs_ready_to_alu;
+    integer file;
+    initial begin
+        file = $fopen("a.out", "w");
+    end
 
 
     assign rs_avail = !(busy[0]&&busy[1]&&busy[2]&&busy[3]&&busy[4]&&busy[5]&&
@@ -119,27 +123,37 @@ module rs (
                 out_rs2_oprand <= rs2_oprand[avail_to_alu_num];
                 busy[avail_to_alu_num] <= `False;
                 ready_to_alu[avail_to_alu_num] <= `False;
+                //$fwrite(file, "%d", ready_to_alu[0]);
+                //$fwrite(file, "  ");
+                //$fwrite(file, "%d", ready_to_alu[1]);
+                //$fwrite(file, "  ");
+                //$fwrite(file, "%d", avail_to_alu_num);
+                //$fwrite(file, "  ");
+                //$fdisplay(file, $time);
             end
             if(has_rd_ready_1||has_rd_ready_2) begin
                 for(i = 0; i <= 15;i = i + 1) begin
-                    if(busy[i]==`True) begin
+                    if(busy[i]==`True && !(rs_ready_to_alu && avail_to_alu_num==i)) begin
                         if(has_rd_ready_1 && rs1_ready[i]==`False && rs1_robnum[i]==ready_robnum_1) begin
                             rs1_ready[i] <= `True;
                             rs1_oprand[i] <= ready_data_1;
+                            ready_to_alu[i] <= 1'b1 & rs2_ready[i];
                         end
                         if(has_rd_ready_2 && rs1_ready[i]==`False && rs1_robnum[i]==ready_robnum_2) begin
                             rs1_ready[i] <= `True;
                             rs1_oprand[i] <= ready_data_2;
+                            ready_to_alu[i] <= 1'b1 & rs2_ready[i];
                         end
                         if(has_rd_ready_1 && rs2_ready[i]==`False && rs2_robnum[i]==ready_robnum_1) begin
                             rs2_ready[i] <= `True;
                             rs2_oprand[i] <= ready_data_1;
+                            ready_to_alu[i] <= rs1_ready[i] & 1'b1;
                         end
                         if(has_rd_ready_2 && rs2_ready[i]==`False && rs2_robnum[i]==ready_robnum_2) begin
                             rs2_ready[i] <= `True;
                             rs2_oprand[i] <= ready_data_2;
+                            ready_to_alu[i] <= rs1_ready[i] & 1'b1;
                         end
-                        ready_to_alu[i] <= rs1_ready[i] && rs2_ready[i];
                     end
                 end
             end

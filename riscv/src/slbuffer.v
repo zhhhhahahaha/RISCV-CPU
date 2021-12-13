@@ -171,19 +171,19 @@ module slbuffer (
                 head <= head + 1;
                 case(op[head])
                     `op_lb: begin
-                        out_rd_data <= in_mem_data;
+                        out_rd_data <= {{24{in_mem_data[7]}}, in_mem_data[7:0]};
                     end
                     `op_lh: begin
-                        out_rd_data <= in_mem_data;
+                        out_rd_data <= {{16{in_mem_data[15]}}, in_mem_data[15:0]};
                     end
                     `op_lw: begin
                         out_rd_data <= in_mem_data;
                     end
                     `op_lbu: begin
-                        out_rd_data <= {24{in_mem_data[7],in_mem_data[7:0]}};
+                        out_rd_data <= {24'b0, in_mem_data[7:0]};
                     end
                     `op_lhu: begin
-                        out_rd_data <= {16{in_mem_data[15],in_mem_data[15:0]}};
+                        out_rd_data <= {16'b0 ,in_mem_data[15:0]};
                     end
                 endcase
                 /*if(head+1!=tail && rs1_ready[head+1] && rs2_ready[head+1]) begin

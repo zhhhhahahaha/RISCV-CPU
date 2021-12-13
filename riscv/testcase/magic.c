@@ -37,7 +37,7 @@ void search(int x, int y, int z)
                 	for (j = 0;j <= 2;j ++)
                     {
                         outl(make[i][j]);
-                        print(" ");
+                        //print(" ");
                     }
                     print("\n");
                 }

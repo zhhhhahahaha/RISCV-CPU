@@ -60,8 +60,8 @@ module registerfile (
                 $fwrite(file, "%d", dest_reg_num);
                 $fwrite(file, "  ");
                 $fwrite(file, "%d", in_reg_data);
-                $fwrite(file, "  ");
-                $fdisplay(file, $time);
+                $fdisplay(file, "  ");
+                //$fdisplay(file, $time);
             end
             if (needsetbusy && rd_addr != `Zero_Reg_Addr) begin
                 busy[rd_addr] <= `True;
@@ -70,10 +70,10 @@ module registerfile (
         end
     end
 
-    assign rs1_data = (has_from_rob && dest_reg_num==rs1_addr)? in_reg_data : datas[rs1_addr];
-    assign rs2_data = (has_from_rob && dest_reg_num==rs2_addr)? in_reg_data : datas[rs2_addr];
-    assign rs1_busy = (has_from_rob && dest_reg_num==rs1_addr)? `False : busy[rs1_addr];
-    assign rs2_busy = (has_from_rob && dest_reg_num==rs2_addr)? `False : busy[rs2_addr];
+    assign rs1_data = (has_from_rob && dest_reg_num==rs1_addr && dest_reg_num!=0 && in_reg_rob_num==rob_num[dest_reg_num])? in_reg_data : datas[rs1_addr];
+    assign rs2_data = (has_from_rob && dest_reg_num==rs2_addr && dest_reg_num!=0 && in_reg_rob_num==rob_num[dest_reg_num])? in_reg_data : datas[rs2_addr];
+    assign rs1_busy = (has_from_rob && dest_reg_num==rs1_addr && dest_reg_num!=0 && in_reg_rob_num==rob_num[dest_reg_num])? `False : busy[rs1_addr];
+    assign rs2_busy = (has_from_rob && dest_reg_num==rs2_addr && dest_reg_num!=0 && in_reg_rob_num==rob_num[dest_reg_num])? `False : busy[rs2_addr];
     assign rs1_rob_num = rob_num[rs1_addr];
     assign rs2_rob_num = rob_num[rs2_addr];
 

@@ -39,12 +39,17 @@ module fetcher (
 
 
     
-);
+);   
+    //pc[1:0] byte_selector  pc[9:2]index  pc[31:10]tag
+    reg valid[`Icache_Size];
+    reg [21:0] tag[`Icache_Size];
+    reg [`Data_Len] instuction[`Icache_Size]; 
     reg can_begin;
     reg misbranch_recover;
     reg wait_issue;
     wire allready;
     assign all_ready = rob_avail && rs_avail && slb_avail;
+    integer i;
 
 
     always @(posedge clk) begin
@@ -55,6 +60,9 @@ module fetcher (
             wait_issue <= `False;
             misbranch_recover <= `False;
             can_begin <= `True;
+            for(i=0; i<255; i=i+1)begin
+                valid[i] <= `False;
+            end
         end
         else if (rdy) begin
             pc_reg_ask <= `False;
@@ -86,6 +94,9 @@ module fetcher (
                     out_pc_inst <= out_issue_inst;
                 end
                 if(in_mem_ready)begin
+                    instuction[in_pc_addr[9:2]] <= in_mem_inst;
+                    tag[in_pc_addr[9:2]] <= in_pc_addr[31:10];
+                    valid[in_pc_addr[9:2]] <= `True;
                     out_issue_inst <= in_mem_inst;
                     out_issue_pc <= in_pc_addr;
                     out_has_jump <= in_has_jump;
@@ -100,8 +111,24 @@ module fetcher (
                     end
                 end
                 if(pc_ready) begin
-                    out_mem_addr <= in_pc_addr;
-                    mem_ask <= `True;
+                    if(valid[in_pc_addr[9:2]] && tag[in_pc_addr[9:2]]==in_pc_addr[31:10]) begin
+                        out_issue_inst <= instuction[in_pc_addr[9:2]];
+                        out_issue_pc <= in_pc_addr;
+                        out_has_jump <= in_has_jump;
+                        if(all_ready) begin
+                            if(instuction[in_pc_addr[9:2]]!=32'd0)
+                            can_issue <= `True;
+                            pc_reg_ask <= `True;
+                            out_pc_inst <= instuction[in_pc_addr[9:2]];
+                        end 
+                        else begin
+                            wait_issue <= `True;
+                        end
+                    end
+                    else begin
+                        out_mem_addr <= in_pc_addr;
+                        mem_ask <= `True;
+                    end
                 end
             end
         end

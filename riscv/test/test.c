@@ -1,13 +1,24 @@
 #include "io.h"
-int gcd(int x, int y) {
-  if (x%y == 0) return y;
-  else return gcd(y, x%y);
-}
 
-int main() {
-    outlln(gcd(10,1));
-    outlln(gcd(34986,3087));
-    outlln(gcd(2907,1539));
-
-    return 0;
+int main(){
+	int i = 0;
+	for ( ; i < 0x1ff; i++) {
+		outb('a');
+		outb('b');
+		outb('c');
+		outb('d');
+		outb('e');
+		outb('f');
+		outb('g');
+		outb('h');
+		outb('i');
+		outb('j');
+		outb('k');
+		outb('l');
+		outb('m');
+		outb('n');
+		outb('o');
+		outb('p');
+	}
+	return 0;
 }

@@ -20,6 +20,9 @@
 //2-saturating counter
 `define Predictor_Size 255:0
 
+//i-cache
+`define Icache_Size 255:0
+
 `define Slb_Size 15:0
 `define Slb_Addr_Len 3:0
 
