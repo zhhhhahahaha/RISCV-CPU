@@ -1,7 +1,5 @@
 `include "config.v"
 
-//have not considered the i/o problem
-
 module ask_memory (
     input clk, input rst, input rdy,
     input io_buffer_full,
@@ -66,34 +64,32 @@ module ask_memory (
             slb_is_wr <= `False;
             slb_waiting <= `False;
         end
-        else if (has_misbranch) begin
-            ram_wr <= `Read;
-            ram_addr <= `Zero_Addr;
-            out_fetcher_mem_ready <= `False;
-            out_slb_mem_ready <= `False;
-            fetch_waiting <= `False;
-            fetch_is_reading <= `False;
-            slb_is_wr <= `False;
-            slb_waiting <= `False;
-        end
         else if(rdy) begin
             ram_wr <= `Read;
             ram_addr <= `Zero_Addr;
             out_fetcher_mem_ready <= `False;
             out_slb_mem_ready <= `False;
-            if(in_fetch_mem_ask) begin
+            if(has_misbranch)begin
+                fetch_waiting <= `False;
+                fetch_is_reading <= `False;
+                if(!(slb_waiting && wr==`Write)) begin
+                    slb_is_wr <= `False;
+                    slb_waiting <= `False;
+                end
+            end
+            if(in_fetch_mem_ask && !has_misbranch) begin
                 fetch_waiting <= `True;
                 fetch_is_reading <= `False;
                 fetch_mem_addr <= in_fetch_mem_addr;
             end
-            if(in_read_mem||in_write_mem) begin
+            if((in_read_mem||in_write_mem) && !has_misbranch) begin
                 slb_waiting <= `True;
                 wr <= in_read_mem? `Read : `Write;
                 slb_mem_addr <= in_slb_mem_addr;
                 byte_num <= in_byte_num;
                 slb_data <= in_write_data;
             end
-            if((in_read_mem||in_write_mem) && !fetch_is_reading) begin
+            if((in_read_mem||in_write_mem) && !fetch_is_reading && !has_misbranch) begin
                 if(!(in_write_mem && in_slb_mem_addr==32'h30000)) begin
                     slb_is_wr <= `True;
                     fetch_is_reading <= `False;
@@ -103,7 +99,7 @@ module ask_memory (
                     slb_wr_state <= 3'd0;
                 end
             end
-            if(slb_waiting && !fetch_is_reading && !slb_is_wr && slb_mem_addr!=32'h30000) begin
+            if(slb_waiting && !fetch_is_reading && !slb_is_wr && slb_mem_addr!=32'h30000 && !has_misbranch) begin
                 slb_is_wr <= `True;
                 fetch_is_reading <= `False;
                 ram_wr <= wr? `Write : `Read;
@@ -111,21 +107,21 @@ module ask_memory (
                 out_ram_data <= slb_data[7:0];
                 slb_wr_state <= 3'd0;
             end
-            if(in_fetch_mem_ask && !slb_is_wr) begin
+            if(in_fetch_mem_ask && !slb_is_wr && !has_misbranch) begin
                 fetch_is_reading <= `True;
                 slb_is_wr <= `False;
                 read_state <= 0;
                 ram_wr <= `Read;
                 ram_addr <= in_fetch_mem_addr;
             end
-            if(fetch_waiting && !fetch_is_reading && !slb_is_wr) begin
+            if(fetch_waiting && !fetch_is_reading && !slb_is_wr && !has_misbranch) begin
                 fetch_is_reading <= `True;
                 slb_is_wr <= `False;
                 read_state <= 0;
                 ram_wr <= `Read;
                 ram_addr <= fetch_mem_addr; 
             end
-            if(in_write_mem && !fetch_is_reading && in_slb_mem_addr==32'h30000)begin
+            if(in_write_mem && !fetch_is_reading && in_slb_mem_addr==32'h30000 && !has_misbranch)begin
                 if(!io_buffer_full) begin
                     ram_wr <= `Write;
                     ram_addr <= in_slb_mem_addr;
@@ -151,7 +147,7 @@ module ask_memory (
                 //$fwrite(file, "  ");
                 //$fdisplay(file, slb_data[7:0]);
             end
-            if(fetch_is_reading) begin
+            if(fetch_is_reading && !has_misbranch) begin
                 case(read_state)
                     0 : begin
                         ram_addr <= fetch_mem_addr + 1;
@@ -179,7 +175,7 @@ module ask_memory (
                     end
                 endcase
             end
-            if(slb_is_wr && wr==`Read) begin
+            if(slb_is_wr && wr==`Read && !has_misbranch) begin
                 case(slb_wr_state)
                     3'd0 : begin
                         if(byte_num==3'd1)begin

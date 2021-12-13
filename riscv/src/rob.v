@@ -149,7 +149,7 @@ module rob (
                         ready_field[in_slb_rd_robnum] <= `True;
                     end
                     `Store_Type: begin
-                        ready_field[in_slb_rd_robnum] <= `True;
+                        head <= head + 1;
                     end
                 endcase 
             end
@@ -164,9 +164,9 @@ module rob (
                         out_reg_rob_num <= head;
                         head <= head + 1;
                     end
-                    `Store_Type : begin
+                    /*`Store_Type : begin
                         head <= head + 1;
-                    end
+                    end*/
                     `Branch_Type : begin
                         if(head+1!=tail && !(head==4'd15&&tail==4'd0))begin
                             head <= head + 1;

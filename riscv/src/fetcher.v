@@ -81,9 +81,26 @@ module fetcher (
                 wait_issue <= `False;
             end
             else if(misbranch_recover) begin
-                out_mem_addr <= in_pc_addr;
-                mem_ask <= `True;
                 misbranch_recover <= `False;
+                out_mem_addr <= in_pc_addr;
+                if(valid[in_pc_addr[9:2]] && tag[in_pc_addr[9:2]]==in_pc_addr[31:10]) begin
+                    out_issue_inst <= instuction[in_pc_addr[9:2]];
+                    out_issue_pc <= in_pc_addr;
+                    out_has_jump <= in_has_jump;
+                    if(all_ready) begin
+                        if(instuction[in_pc_addr[9:2]]!=32'd0)
+                        can_issue <= `True;
+                        pc_reg_ask <= `True;
+                        out_pc_inst <= instuction[in_pc_addr[9:2]];
+                    end 
+                    else begin
+                        wait_issue <= `True;
+                    end
+                end
+                else begin
+                    out_mem_addr <= in_pc_addr;
+                    mem_ask <= `True;
+                end
             end
             else begin
                 if(wait_issue && all_ready)begin

@@ -76,9 +76,14 @@ module slbuffer (
             has_to_rob <= `False;
         end
         else if (has_misbranch) begin
-            head <= 4'd0;
-            tail <= 4'd0;
-            is_waiting <= `False;
+            if(is_waiting && (op[head]==`op_sb || op[head]==`op_sh || op[head]==`op_sw) && !in_mem_ready)begin//if in_mem_ready is true, just set head and tail to 0;
+                tail <= head + 1;
+            end
+            else begin
+                head <= 4'd0;
+                tail <= 4'd0;
+                is_waiting <= `False;
+            end
             read_mem <= `False;
             write_mem <= `False;
             has_to_rob <= `False;
@@ -134,6 +139,8 @@ module slbuffer (
                             mem_addr <= rs1_oprand[head] + imm[head];
                             Byte_num <= 3'd1;
                             write_data <= {24'd0,rs2_oprand[head][7:0]};
+                            has_to_rob <= `True;
+                            out_rd_robnum <= rd_robnum[head];
                         end
                         else begin
                             is_waiting <= `False;
@@ -145,6 +152,8 @@ module slbuffer (
                             mem_addr <= rs1_oprand[head] + imm[head];
                             Byte_num <= 3'd2;
                             write_data <= {16'd0,rs2_oprand[head][15:0]};
+                            has_to_rob <= `True;
+                            out_rd_robnum <= rd_robnum[head];
                         end
                         else begin
                             is_waiting <= `False;
@@ -156,6 +165,8 @@ module slbuffer (
                             mem_addr <= rs1_oprand[head] + imm[head];
                             Byte_num <= 3'd4;
                             write_data <= rs2_oprand[head];
+                            has_to_rob <= `True;
+                            out_rd_robnum <= rd_robnum[head];
                         end
                         else begin
                             is_waiting <= `False;
@@ -184,6 +195,15 @@ module slbuffer (
                     end
                     `op_lhu: begin
                         out_rd_data <= {16'b0 ,in_mem_data[15:0]};
+                    end
+                    `op_sb: begin
+                        has_to_rob <= `False;
+                    end
+                    `op_sh: begin
+                        has_to_rob <= `False;
+                    end
+                    `op_sw: begin
+                        has_to_rob <= `False;
                     end
                 endcase
                 /*if(head+1!=tail && rs1_ready[head+1] && rs2_ready[head+1]) begin

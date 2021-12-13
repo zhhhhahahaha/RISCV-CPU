@@ -44,6 +44,7 @@ module pc_reg (
         else if(has_misbranch) begin
             pc <= in_true_pc;
             pc_ready <= `True;
+            has_jump <= in_need_jump;
             if(in_need_jump)begin
                 if(branch_predictor[in_pc[9:2]][0]==1'b1)begin
                     branch_predictor[in_pc[9:2]] <= 2'b11;
