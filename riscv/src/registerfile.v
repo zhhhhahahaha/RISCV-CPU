@@ -57,10 +57,10 @@ module registerfile (
                     busy[dest_reg_num] <= `False;
                 end
                 datas[dest_reg_num] <= in_reg_data;
-                $fwrite(file, "%d", dest_reg_num);
-                $fwrite(file, "  ");
-                $fwrite(file, "%d", in_reg_data);
-                $fdisplay(file, "  ");
+                //$fwrite(file, "%d", dest_reg_num);
+                //$fwrite(file, "  ");
+                //$fwrite(file, "%d", in_reg_data);
+                //$fwrite(file, "  ");
                 //$fdisplay(file, $time);
             end
             if (needsetbusy && rd_addr != `Zero_Reg_Addr) begin

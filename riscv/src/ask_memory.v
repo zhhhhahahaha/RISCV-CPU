@@ -48,10 +48,11 @@ module ask_memory (
     reg [`Data_Len] slb_data;
     reg [`Data_Len] slb_read_buffer;
     reg [2:0] slb_wr_state;
-    integer file;
+    reg stop;
+    /*integer file;
     initial begin
         file = $fopen("a.out", "w");
-    end
+    end*/
 
     always @(posedge clk) begin
         if(rst) begin
@@ -63,6 +64,12 @@ module ask_memory (
             fetch_is_reading <= `False;
             slb_is_wr <= `False;
             slb_waiting <= `False;
+            stop <= `False;
+        end
+        else if(stop)begin
+            ram_wr <= `Write;
+            ram_addr <= slb_mem_addr;
+            out_ram_data <= slb_data[7:0];
         end
         else if(rdy) begin
             ram_wr <= `Read;
@@ -72,7 +79,7 @@ module ask_memory (
             if(has_misbranch)begin
                 fetch_waiting <= `False;
                 fetch_is_reading <= `False;
-                if(!(slb_waiting && wr==`Write)) begin
+                if(!(slb_waiting && (wr==`Write || slb_mem_addr==32'h30000))) begin
                     slb_is_wr <= `False;
                     slb_waiting <= `False;
                 end
@@ -90,7 +97,7 @@ module ask_memory (
                 slb_data <= in_write_data;
             end
             if((in_read_mem||in_write_mem) && !fetch_is_reading && !has_misbranch) begin
-                if(!(in_write_mem && in_slb_mem_addr==32'h30000)) begin
+                if(!(in_write_mem && (in_slb_mem_addr==32'h30000||in_slb_mem_addr==32'h30004))) begin
                     slb_is_wr <= `True;
                     fetch_is_reading <= `False;
                     ram_wr <= in_write_mem? `Write : `Read;
@@ -99,12 +106,19 @@ module ask_memory (
                     slb_wr_state <= 3'd0;
                 end
             end
-            if(slb_waiting && !fetch_is_reading && !slb_is_wr && slb_mem_addr!=32'h30000 && !has_misbranch) begin
+            if(slb_waiting && !fetch_is_reading && !slb_is_wr && (slb_mem_addr!=32'h30000 && !(slb_mem_addr==32'h30004 && wr==`Write)) && !has_misbranch) begin
                 slb_is_wr <= `True;
                 fetch_is_reading <= `False;
                 ram_wr <= wr? `Write : `Read;
                 ram_addr <= slb_mem_addr;
                 out_ram_data <= slb_data[7:0];
+                slb_wr_state <= 3'd0;
+            end
+            if(slb_waiting && !fetch_is_reading && !slb_is_wr && slb_mem_addr==32'h30000 && wr == `Read) begin
+                slb_is_wr <= `True;
+                fetch_is_reading <= `False;
+                ram_wr <= `Read;
+                ram_addr <= slb_mem_addr;
                 slb_wr_state <= 3'd0;
             end
             if(in_fetch_mem_ask && !slb_is_wr && !has_misbranch) begin
@@ -147,6 +161,16 @@ module ask_memory (
                 //$fwrite(file, "  ");
                 //$fdisplay(file, slb_data[7:0]);
             end
+            if(slb_waiting && wr==`Write && !fetch_is_reading && !slb_is_wr && slb_mem_addr==32'h30004 && !io_buffer_full) begin
+                stop <= `True;
+                ram_wr <= `Write;
+                ram_addr <= slb_mem_addr;
+                out_ram_data <= slb_data[7:0];
+                out_slb_mem_ready <= `False;
+                slb_waiting <= `True;
+                slb_is_wr <= `True;
+                fetch_is_reading <= `False;
+            end 
             if(fetch_is_reading && !has_misbranch) begin
                 case(read_state)
                     0 : begin
@@ -175,7 +199,7 @@ module ask_memory (
                     end
                 endcase
             end
-            if(slb_is_wr && wr==`Read && !has_misbranch) begin
+            if(slb_is_wr && wr==`Read && (!has_misbranch || slb_mem_addr==32'h30000)) begin
                 case(slb_wr_state)
                     3'd0 : begin
                         if(byte_num==3'd1)begin
@@ -228,7 +252,7 @@ module ask_memory (
                     end
                 endcase
             end
-            if(slb_is_wr && wr==`Write && slb_mem_addr!=32'd30000) begin
+            if(slb_is_wr && wr==`Write && slb_mem_addr!=32'h30000) begin
                 case(slb_wr_state)
                     3'd0 : begin
                         if(byte_num==3'd1) begin

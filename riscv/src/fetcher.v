@@ -88,9 +88,10 @@ module fetcher (
                     out_issue_pc <= in_pc_addr;
                     out_has_jump <= in_has_jump;
                     if(all_ready) begin
-                        if(instuction[in_pc_addr[9:2]]!=32'd0)
-                        can_issue <= `True;
-                        pc_reg_ask <= `True;
+                        if(instuction[in_pc_addr[9:2]]!=32'd0)begin
+                            can_issue <= `True;
+                            pc_reg_ask <= `True;
+                        end
                         out_pc_inst <= instuction[in_pc_addr[9:2]];
                     end 
                     else begin
@@ -105,9 +106,10 @@ module fetcher (
             else begin
                 if(wait_issue && all_ready)begin
                     wait_issue <= `False;
-                    if(out_issue_inst!=32'd0)
-                    can_issue <= `True;
-                    pc_reg_ask <= `True;
+                    if(out_issue_inst!=32'd0) begin
+                        can_issue <= `True;
+                        pc_reg_ask <= `True;
+                    end 
                     out_pc_inst <= out_issue_inst;
                 end
                 if(in_mem_ready)begin
@@ -118,9 +120,10 @@ module fetcher (
                     out_issue_pc <= in_pc_addr;
                     out_has_jump <= in_has_jump;
                     if(all_ready) begin
-                        if(in_mem_inst!=32'd0)
-                        can_issue <= `True;
-                        pc_reg_ask <= `True;
+                        if(in_mem_inst!=32'd0)begin
+                            can_issue <= `True;
+                            pc_reg_ask <= `True;
+                        end
                         out_pc_inst <= in_mem_inst;
                     end
                     else begin
@@ -133,9 +136,10 @@ module fetcher (
                         out_issue_pc <= in_pc_addr;
                         out_has_jump <= in_has_jump;
                         if(all_ready) begin
-                            if(instuction[in_pc_addr[9:2]]!=32'd0)
-                            can_issue <= `True;
-                            pc_reg_ask <= `True;
+                            if(instuction[in_pc_addr[9:2]]!=32'd0) begin
+                                can_issue <= `True;
+                                pc_reg_ask <= `True;
+                            end
                             out_pc_inst <= instuction[in_pc_addr[9:2]];
                         end 
                         else begin

@@ -2,7 +2,7 @@
 
 int main(){
 	int i = 0;
-	for ( ; i < 0x1ff; i++) {
+	for ( ; i < 65; i++) {
 		outb('a');
 		outb('b');
 		outb('c');
@@ -20,5 +20,6 @@ int main(){
 		outb('o');
 		outb('p');
 	}
+	outb('g');
 	return 0;
 }

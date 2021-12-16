@@ -10,15 +10,15 @@ void printBoard() {
     for (i = 0; i < N; i++) {
         for (j = 0; j < N; j++) {
             if (col[i] == j){
-                //print(" O");
+                print(" O");
             }
             else{
-                //print(" .");
+                print(" .");
             }
         }
-        //println("");
+        println("");
     }
-    //println("");
+    println("");
     //sleep(50); // to prevent UART buffer from overflowing
 }
 

@@ -23,9 +23,9 @@ int main() {
 		}
 		
 		c = c-14;
-		//outl(e+d/a); // should be printf("%04b"), but let it be
+		outl(e+d/a); // should be printf("%04b"), but let it be
 	}
 	
-  //print("\n");
+  print("\n");
   return 0;
 }

@@ -34,6 +34,7 @@ module slbuffer (
 
     //from rob
     input can_store,
+    input [`Rob_Addr_Len] read_check,
 
     input has_rd_ready_1,
     input [`Rob_Addr_Len] ready_robnum_1,
@@ -61,6 +62,10 @@ module slbuffer (
     reg rs2_ready[`Slb_Size];
     reg is_waiting;
     integer i;
+    integer  file;
+    initial begin
+        file = $fopen("a.out", "w");
+    end
 
     assign full = has_issue? head==tail+2 || (tail==4'd14&&head==4'd0) || (tail==4'd15&&head==4'd1) : head == tail+1 || (tail==4'd15&&head==4'd0); //only 15 entries can be used
 
@@ -109,9 +114,21 @@ module slbuffer (
                     is_waiting <= `True;
                     case(op[head])
                     `op_lb: begin
-                        read_mem <= `True;
-                        mem_addr <= rs1_oprand[head] + imm[head];
-                        Byte_num <= 3'd1;                 
+                        if(rs1_oprand[head]+imm[head]==32'h30000) begin
+                            if(read_check==rd_robnum[head]) begin
+                                read_mem <= `True;
+                                mem_addr <= rs1_oprand[head] + imm[head];
+                                Byte_num <= 3'd1; 
+                            end
+                            else begin
+                                is_waiting <= `False;
+                            end
+                        end
+                        else begin
+                            read_mem <= `True;
+                            mem_addr <= rs1_oprand[head] + imm[head];
+                            Byte_num <= 3'd1; 
+                        end                
                     end
                     `op_lh: begin
                         read_mem <= `True;
@@ -122,11 +139,29 @@ module slbuffer (
                         read_mem <= `True;
                         mem_addr <= rs1_oprand[head] + imm[head];
                         Byte_num <= 3'd4;
+                        $fwrite(file, "%d", head);
+                        $fwrite(file, " ");
+                        $fwrite(file, "%d", rs1_oprand[head]);
+                        $fwrite(file, " ");
+                        $fwrite(file, "%d", imm[head]);
+                        $fdisplay(file, $time);
                     end
                     `op_lbu: begin
-                        read_mem <= `True;
-                        mem_addr <= rs1_oprand[head] + imm[head];
-                        Byte_num <= 3'd1;
+                        if(rs1_oprand[head]+imm[head]==32'h30000) begin
+                            if(read_check==rd_robnum[head]) begin
+                                read_mem <= `True;
+                                mem_addr <= rs1_oprand[head] + imm[head];
+                                Byte_num <= 3'd1; 
+                            end
+                            else begin
+                                is_waiting <= `False;
+                            end
+                        end
+                        else begin
+                            read_mem <= `True;
+                            mem_addr <= rs1_oprand[head] + imm[head];
+                            Byte_num <= 3'd1; 
+                        end
                     end
                     `op_lhu: begin
                         read_mem <= `True;
@@ -272,21 +307,23 @@ module slbuffer (
             end
             if(has_rd_ready_1||has_rd_ready_2)begin
                 for(i = 0; i <= 15; i = i + 1) begin
-                    if(has_rd_ready_1 && rs1_ready[i]==`False && rs1_robnum[i]==ready_robnum_1) begin
-                        rs1_ready[i] <= `True;
-                        rs1_oprand[i] <= ready_data_1;
-                    end
-                    if(has_rd_ready_2 && rs1_ready[i]==`False && rs1_robnum[i]==ready_robnum_2) begin
-                        rs1_ready[i] <= `True;
-                        rs1_oprand[i] <= ready_data_2;
-                    end
-                    if(has_rd_ready_1 && rs2_ready[i]==`False && rs2_robnum[i]==ready_robnum_1) begin
-                        rs2_ready[i] <= `True;
-                        rs2_oprand[i] <= ready_data_1;
-                    end
-                    if(has_rd_ready_2 && rs2_ready[i]==`False && rs2_robnum[i]==ready_robnum_2) begin
-                        rs2_ready[i] <= `True;
-                        rs2_oprand[i] <= ready_data_2;
+                    if(i!=tail)begin
+                        if(has_rd_ready_1 && rs1_ready[i]==`False && rs1_robnum[i]==ready_robnum_1) begin
+                            rs1_ready[i] <= `True;
+                            rs1_oprand[i] <= ready_data_1;
+                        end
+                        if(has_rd_ready_2 && rs1_ready[i]==`False && rs1_robnum[i]==ready_robnum_2) begin
+                            rs1_ready[i] <= `True;
+                            rs1_oprand[i] <= ready_data_2;
+                        end
+                        if(has_rd_ready_1 && rs2_ready[i]==`False && rs2_robnum[i]==ready_robnum_1) begin
+                            rs2_ready[i] <= `True;
+                            rs2_oprand[i] <= ready_data_1;
+                        end
+                        if(has_rd_ready_2 && rs2_ready[i]==`False && rs2_robnum[i]==ready_robnum_2) begin
+                            rs2_ready[i] <= `True;
+                            rs2_oprand[i] <= ready_data_2;
+                        end
                     end
                 end
             end

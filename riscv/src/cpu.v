@@ -58,6 +58,7 @@ module cpu(
   wire [`Data_Len] ready_data_2;
 
   wire can_store;
+  wire [`Rob_Addr_Len] read_check;
 
   wire has_to_reg;
   wire [`Reg_Addr_Len] dest_reg_num;
@@ -296,7 +297,7 @@ module cpu(
 
     .has_from_slb(has_to_rob_slb), .in_slb_rd_robnum(out_rd_robnum_slb), .in_slb_rd_data(out_rd_data_slb),
 
-    .can_store(can_store), 
+    .can_store(can_store), .read_check(read_check),
 
     .has_to_reg(has_to_reg), .dest_reg_num(dest_reg_num), .out_reg_data(out_reg_data),
     .out_reg_rob_num(reg_rob_num),
@@ -353,7 +354,7 @@ module cpu(
     .read_mem(read_mem), .write_mem(write_mem), .mem_addr(mem_addr),
     .Byte_num(Byte_num), .write_data(write_data),
 
-    .can_store(can_store),
+    .can_store(can_store), .read_check(read_check),
 
     .has_rd_ready_1(has_rd_ready_1), .ready_robnum_1(ready_robnum_1), .ready_data_1(ready_data_1), 
     .has_rd_ready_2(has_rd_ready_2), .ready_robnum_2(ready_robnum_2), .ready_data_2(ready_data_2),

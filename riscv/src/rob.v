@@ -46,6 +46,7 @@ module rob (
 
     //to slbuffer
     output can_store,
+    output [`Rob_Addr_Len] read_check,
 
     //to register files
     output reg has_to_reg,
@@ -81,6 +82,7 @@ module rob (
 
     //to slbuffer
     assign can_store = (inst_type_field[head]==`Store_Type)? `True : `False; 
+    assign read_check = head;
     
     //to issue
     assign rob_avail = !full;
